@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>CyberMiner</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+  <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+  <script src="https://cdn.datatables.net/1.10.10/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.10.10/css/jquery.dataTables.min.css"></script>
+  <style>
+	.jumbotron {
+    position: relative;
+    background: #FF944D ;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    overflow: hidden;
+   }
+   .red {
+    color: red;
+  }
+</style>
+<script>
+$(document).ready(function(){
+		function ajaxindicatorstart(text)
+			{
+                if(jQuery('body').find('#resultLoading').attr('id') != 'resultLoading'){
+                jQuery('body').append('<div id="resultLoading" style="display:none"><div><img src="ajax-loader.gif"><div>'+text+'</div></div><div class="bg"></div></div>');
+                }
+                
+                jQuery('#resultLoading').css({
+                                'width':'100%',
+                                'height':'100%',
+                                'position':'fixed',
+                                'z-index':'10000000',
+                                'top':'0',
+                                'left':'0',
+                                'right':'0',
+                                'bottom':'0',
+                                'margin':'auto'
+                });           
+                
+                jQuery('#resultLoading .bg').css({
+                                'background':'#000000',
+                                'opacity':'0.7',
+                                'width':'100%',
+                                'height':'100%',
+                                'position':'absolute',
+                                'top':'0'
+                });
+                
+                jQuery('#resultLoading>div:first').css({
+                                'width': '250px',
+                                'height':'75px',
+                                'text-align': 'center',
+                                'position': 'fixed',
+                                'top':'0',
+                                'left':'0',
+                                'right':'0',
+                                'bottom':'0',
+                                'margin':'auto',
+                                'font-size':'16px',
+                                'z-index':'10',
+                                'color':'#ffffff'
+                                
+                });
+
+				    jQuery('#resultLoading .bg').height('100%');
+				jQuery('#resultLoading').fadeIn(300);
+				    jQuery('body').css('cursor', 'wait');
+				}
+				
+				function ajaxindicatorstop()
+				{
+				    jQuery('#resultLoading .bg').height('100%');
+				jQuery('#resultLoading').fadeOut(300);
+				    jQuery('body').css('cursor', 'default');
+				}
+				
+				jQuery(document).ajaxStart(function () {
+				    //show ajax indicator
+				    ajaxindicatorstart('loading data...');
+				}).ajaxStop(function () {
+				    //hide ajax indicator
+				    ajaxindicatorstop();
+				});	
+		
+
+
+		$("#searchtype").hide();
+	$("#st").click(function(){
+		$("#searchtype").show();
+    });
+    $("#strings").focus(function(){
+		$("#searchtype").hide();
+    });
+    $("#GetUrls").click(function(){
+            $("#errorpanel").empty();
+            $("#dataTable tbody").empty(); 
+            var str = $("#strings").val();
+            var option = $("#options :checked").val();
+			$.ajax({
+				url:"http://localhost:8080/kwicWebapp/service/hello/url/"+str+"/"+option,
+				type:"GET",
+				dataType:'json',			
+				success:function(data) {
+					for(i = 0; i < data.url.length; i++) {
+        							var row= "<tr><td><a href="+data.url[i]+" target=\"_blank\">"+data.url[i]+"</a></td></tr>";
+        							$('#dataTable tbody').append(row);
+    				}
+    				
+    				$('#dataTable').DataTable( {
+                       "dom": '<"top"i>rt<"bottom"flp><"clear">'
+                    } );
+    				
+				},
+				error: function(jqXHR,textStatus, errorThrown){
+					$('#errorpanel').html("<p><b><i><strong class='red'>Oops!</strong> Enter valid input strings or Try again after some time...</i></b></p>");
+					}
+		    });
+});
+
+    $("#Reset").click(function(){
+         $("#errorpanel").empty();   
+         $("#strings").val('');
+         $("#dataTable").empty();
+    });
+
+    
+
+});
+</script>
+</head>
+<body>
+
+<div class="container">
+  <div class="jumbotron">
+  <p class="text-center">
+    <p class="bg-success"><h1>CyberMiner</h1></p>
+    <p class="alert alert-info">a growing web search engine!!!</p>
+  </p>
+  </div>
+  <div id="buttongrp" class="btn-group btn-group-justified" role="group" aria-label="...">
+  <div id="st" class="btn-group" role="group">
+    <button type="button" class="btn btn-default">Search Type</button>
+  </div>
+  <div class="btn-group" role="group">
+    <button type="button" class="btn btn-default"><a href="index.html">Go to KWIC</a></button>
+  </div>
+  <div class="btn-group" role="group">
+    <button type="button" class="btn btn-default">Delete outdated URL's</button>
+  </div>
+</div>
+<div id="searchtype">
+  <div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">Select search type</h3>
+  </div>
+  <div id="options" class="panel-body">
+    <input type="radio" name="sex" value="1" checked> AND
+<br>
+<input type="radio" name="sex" value="2"> OR
+<br>
+<input type="radio" name="sex" value="3"> NOT
+  </div>
+</div>
+</div>
+  <div id="errorpanel">
+  </div>
+  <form role="form">
+    <div class="form-group">
+	  <label  for="usr">Enter Text to search:</label>
+      <textarea class="form-control" rows="1" id="strings"></textarea>	
+	  <input class="btn btn-info" type="button" id="GetUrls" value="Submit">
+	  <input class="btn btn-info" type="button" id="Reset" value="Reset">
+	  <p></p>
+    </div>
+    <table id="dataTable" class="display table table-hover" cellspacing="0" width="100%">
+		<thead>
+            <tr>
+                <th>URL</th>
+            </tr>
+        </thead>
+        <tfoot>
+            <tr>
+                <th>URL</th>
+            </tr>
+        </tfoot>
+		<tbody>
+		</tbody>
+	</table>
+  </form>
+</div>
+</body>
+</html>
